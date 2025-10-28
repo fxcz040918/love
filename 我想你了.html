@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>亲爱的</title>
+<style>
+  :root {
+    --popup-w: 240px;
+    --popup-h: 64px;
+    --bg: #ffd1dc;        /* 粉色 */
+    --fg: #333;
+  }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: #111;
+    font-family: "微软雅黑", "PingFang SC", system-ui, -apple-system, Arial, sans-serif;
+    color: #eee;
+    overflow: hidden; /* 防止弹窗撑出滚动条 */
+  }
+  .ui {
+    position: fixed; inset: 12px 12px auto 12px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    z-index: 10000;
+    background: rgba(0,0,0,.35);
+    padding: 10px 12px; border-radius: 10px; backdrop-filter: blur(6px);
+  }
+  .ui > * { font-size: 14px; }
+  button {
+    border: 0; padding: 8px 14px; border-radius: 8px;
+    background: #ff7fa1; color: #fff; font-weight: 700;
+  }
+  button.secondary { background: #555; }
+  input[type="number"]{ width: 80px; padding: 6px 8px; border-radius: 6px; border: 1px solid #444; background:#222; color:#fff; }
+
+  .popup {
+    position: fixed; width: var(--popup-w); height: var(--popup-h);
+    background: var(--bg); color: var(--fg);
+    border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 8px 10px; line-height: 1.2;
+    user-select: none;
+    animation: pop-in .25s ease both;
+  }
+  .popup .txt { font-size: 18px; font-weight: 700; }
+  @keyframes pop-in { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes fade-out { to { transform: scale(.95); opacity: 0; } }
+
+  /* 适配小屏：缩小弹窗 */
+  @media (max-width: 420px) {
+    :root { --popup-w: 180px; --popup-h: 56px; }
+    .popup .txt { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ui">
+  <span>数量</span>
+  <input id="count" type="number" min="1" max="999" value="120" />
+  <span>间隔(ms)</span>
+  <input id="gap" type="number" min="0" max="5000" value="60" />
+  <span>自动关闭(ms)</span>
+  <input id="ttl" type="number" min="0" max="10000" value="2000" />
+  <button id="startBtn">开始</button>
+  <button id="stopBtn" class="secondary">停止</button>
+</div>
+
+<script>
+  // 你可以在这里自由增删文案
+  const messages = [
+    "想你三秒钟💗","给你一个拥抱🤗","今天见面吗？","注意休息哦～","早点睡呀💤",
+    "吃饭了吗？🍚","别熬夜啦🥱","给你力量⚡","抱一抱💞","比个心❤",
+    "想和你聊天💬","发来一条想念💌","早安呀☀️","晚安好梦🌙","今天也要加油鸭！💪",
+    "小心感冒～🥺","你在看我吗👀","给你小花🌸","想你一整天💗","送你个微笑😊",
+    "摸摸头～","注意保暖～","记得喝水🚰","给你一个期待✨","想你每一刻"
+  ];
+
+  let timerIds = [];
+  const startBtn = document.querySelector('#startBtn');
+  const stopBtn  = document.querySelector('#stopBtn');
+
+  function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function createPopup(ttl=2000){
+    const box = document.createElement('div');
+    box.className = 'popup';
+    box.style.left = rand(0, Math.max(0, innerWidth - parseInt(getComputedStyle(document.documentElement).getPropertyValue('--popup-w')))) + 'px';
+    box.style.top  = rand(0, Math.max(0, innerHeight - parseInt(getComputedStyle(document.documentElement).getPropertyValue('--popup-h')))) + 'px';
+    box.style.transform += ` rotate(${rand(-4,4)}deg)`;
+    box.style.opacity = 0.98;
+
+    const span = document.createElement('div');
+    span.className = 'txt';
+    span.textContent = messages[rand(0, messages.length-1)];
+    box.appendChild(span);
+
+    // 轻触即可关闭
+    box.addEventListener('click', () => {
+      box.style.animation = 'fade-out .18s ease forwards';
+      setTimeout(()=> box.remove(), 180);
+    }, {passive:true});
+
+    document.body.appendChild(box);
+
+    if (ttl > 0) {
+      setTimeout(() => {
+        if (!box.isConnected) return;
+        box.style.animation = 'fade-out .18s ease forwards';
+        setTimeout(()=> box.remove(), 180);
+      }, ttl);
+    }
+  }
+
+  function start() {
+    stop(); // 先清空旧定时器
+    const n = +document.querySelector('#count').value || 100;
+    const gap = +document.querySelector('#gap').value || 50;
+    const ttl = +document.querySelector('#ttl').value || 2000;
+
+    for (let i = 0; i < n; i++) {
+      const id = setTimeout(()=> createPopup(ttl), i * gap);
+      timerIds.push(id);
+    }
+  }
+
+  function stop() {
+    timerIds.forEach(id => clearTimeout(id));
+    timerIds = [];
+    // 移除所有弹窗
+    document.querySelectorAll('.popup').forEach(p => p.remove());
+  }
+
+  startBtn.addEventListener('click', start);
+  stopBtn.addEventListener('click', stop);
+
+  // 电脑端按 Esc 也能清空
+  window.addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
+</script>
+</body>
+</html>
