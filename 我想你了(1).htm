@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>亲爱的💗</title>
+<style>
+  :root {
+    --popup-w: 220px;
+    --popup-h: 56px;
+    --bg: #ffd1dc;
+    --fg: #222;
+  }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #111;
+    overflow: hidden;
+    font-family: "微软雅黑","PingFang SC",sans-serif;
+  }
+  .popup {
+    position: fixed;
+    width: var(--popup-w);
+    height: var(--popup-h);
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    user-select: none;
+    animation: fadein 0.3s ease;
+  }
+  @keyframes fadein {
+    from {opacity: 0; transform: scale(0.8);}
+    to {opacity: 1; transform: scale(1);}
+  }
+  @keyframes fadeout {
+    to {opacity: 0; transform: scale(0.95);}
+  }
+</style>
+</head>
+<body>
+
+<script>
+const messages = [
+  "想你三秒钟💗","给你一个拥抱🤗","今天见面吗？","注意休息哦～","早点睡呀💤",
+  "吃饭了吗？🍚","别熬夜啦🥱","给你力量⚡","抱一抱💞","比个心❤",
+  "想和你聊天💬","发来一条想念💌","早安呀☀️","晚安好梦🌙","今天也要加油鸭！💪",
+  "小心感冒～🥺","你在看我吗👀","给你小花🌸","想你一整天💗","送你个微笑😊",
+  "摸摸头～","注意保暖～","记得喝水🚰","给你一个期待✨","想你每一刻"
+];
+
+// 参数
+const COUNT = 120;      // 弹窗数量
+const INTERVAL = 60;    // 弹窗间隔（毫秒）
+const TTL = 2000;       // 自动关闭时间（毫秒）
+
+function rand(min, max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+function createPopup() {
+  const div = document.createElement("div");
+  div.className = "popup";
+  div.textContent = messages[rand(0, messages.length-1)];
+  const x = rand(0, window.innerWidth - 220);
+  const y = rand(0, window.innerHeight - 56);
+  div.style.left = x + "px";
+  div.style.top = y + "px";
+  div.style.transform = `rotate(${rand(-4,4)}deg)`;
+  document.body.appendChild(div);
+  div.addEventListener("click",()=>div.remove());
+  setTimeout(()=>{
+    div.style.animation = "fadeout .2s ease forwards";
+    setTimeout(()=>div.remove(),200);
+  }, TTL);
+}
+
+// 自动开始
+window.onload = () => {
+  for(let i=0;i<COUNT;i++){
+    setTimeout(createPopup, i * INTERVAL);
+  }
+};
+</script>
+</body>
+</html>
